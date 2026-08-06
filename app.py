@@ -328,15 +328,65 @@ def mastery_status(score: float, difficulty: int, grade: int) -> str:
     return "Developing grade-level science mastery"
 
 
-def make_question(topic: str, difficulty: int) -> dict:
-    if topic == "mixed_review":
-        topic = random.choice(list(QUESTION_BANK.keys()))
+def make_question(
+    topic: str,
+    difficulty: int,
+    used_prompts: list[str] | None = None,
+) -> dict:
+    used_prompts = set(used_prompts or [])
     difficulty = max(1, min(5, difficulty))
-    available = QUESTION_BANK[topic].get(difficulty) or QUESTION_BANK[topic][1]
-    prompt, choices, answer = random.choice(available)
-    shuffled = choices[:]
-    random.shuffle(shuffled)
-    return {"topic": topic, "prompt": prompt, "choices": shuffled, "answer": answer}
+
+    if topic == "mixed_review":
+        candidates = []
+
+        for review_topic, levels in QUESTION_BANK.items():
+            # Include questions near the student's working difficulty.
+            for level in sorted(levels):
+                if abs(level - difficulty) <= 1:
+                    for item in levels[level]:
+                        candidates.append((review_topic, level, item))
+    else:
+        levels = QUESTION_BANK[topic]
+        candidates = []
+
+        # Use the current level first, then nearby levels to provide enough
+        # unique questions for a complete assessment.
+        level_order = sorted(
+            levels,
+            key=lambda level: (
+                abs(level - difficulty),
+                level,
+            ),
+        )
+
+        for level in level_order:
+            for item in levels[level]:
+                candidates.append((topic, level, item))
+
+    unused_candidates = [
+        candidate
+        for candidate in candidates
+        if candidate[2][0] not in used_prompts
+    ]
+
+    # Repetition is allowed only after all available questions were used.
+    selection_pool = unused_candidates or candidates
+
+    selected_topic, selected_level, selected = random.choice(
+        selection_pool
+    )
+
+    prompt, choices, answer = selected
+    shuffled_choices = choices[:]
+    random.shuffle(shuffled_choices)
+
+    return {
+        "topic": selected_topic,
+        "difficulty": selected_level,
+        "prompt": prompt,
+        "choices": shuffled_choices,
+        "answer": answer,
+    }
 
 
 def parent_required(view):
@@ -429,6 +479,7 @@ def start_test(theme_key: str):
         "current_question": 0,
         "correct": 0,
         "answers": [],
+        "used_prompts": [],
         "started_at": time.time(),
         "question_started_at": time.time(),
     }
@@ -453,13 +504,19 @@ def question():
         active["answers"].append({
             "question_number": active["current_question"] + 1,
             "topic": active["question"]["topic"],
-            "difficulty": active["difficulty"],
+            "difficulty": active["question"].get(
+                "difficulty",
+                active["difficulty"],
+            ),
             "prompt": active["question"]["prompt"],
             "expected_answer": expected,
             "submitted_answer": submitted,
             "is_correct": correct,
             "seconds": round(elapsed, 2),
         })
+
+        # Remove the completed question so a new one is generated.
+        active.pop("question", None)
         active["current_question"] += 1
 
         recent = active["answers"][-3:]
@@ -474,8 +531,20 @@ def question():
 
         feedback = "Correct!" if correct else f"The correct answer was: {expected}"
 
-    active["question"] = make_question(active["topic"], active["difficulty"])
-    active["question_started_at"] = time.time()
+    # Keep the current question during a browser refresh.
+    if "question" not in active:
+        active["question"] = make_question(
+            active["topic"],
+            active["difficulty"],
+            active.get("used_prompts", []),
+        )
+
+        active.setdefault("used_prompts", []).append(
+            active["question"]["prompt"]
+        )
+
+        active["question_started_at"] = time.time()
+
     session["active_test"] = active
 
     return render_template(
