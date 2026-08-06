@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ student.name }}</p><h1>Select a science test</h1>
+<p>Age {{ student.age }} • Grade {{ student.grade_level }} • Working difficulty {{ student.current_difficulty }} of 5</p></div></div>
+{% if not student.diagnostic_complete %}<div class="notice">The first selected assessment will be a 12-question adaptive diagnostic.</div>{% endif %}
+<div class="card-grid">{% for key,t in themes.items() %}<article class="card"><h2>{{ t.name }}</h2><p>{{ t.description }}</p><p class="standard">{{ t.standard }}</p>
+<form method="post" action="{{ url_for('start_test', theme_key=key) }}"><button>Start Test</button></form></article>{% endfor %}</div>{% endblock %}

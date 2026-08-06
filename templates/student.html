@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<section class="form-card"><p class="eyebrow">Student information</p><h1>Start a science test</h1>
+<form method="post"><label>Student name<input name="name" required maxlength="80" autofocus></label>
+<label>Age<input type="number" name="age" min="5" max="19" required></label>
+<label>Current grade<select name="grade_level">{% for g in range(1,13) %}<option value="{{ g }}">{{ g }}</option>{% endfor %}</select></label>
+<button>Continue</button></form></section>{% endblock %}

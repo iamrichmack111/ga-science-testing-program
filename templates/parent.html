@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Protected reporting</p><h1>Parent Portal</h1></div>
+<div class="actions"><a class="button secondary" href="{{ url_for('export_csv') }}">Export CSV</a><a class="button secondary" href="{{ url_for('parent_logout') }}">Log Out</a></div></div>
+<h2>Student overview</h2><div class="summary-grid">{% for s in summaries %}
+<a class="summary-card" href="{{ url_for('parent_dashboard', student_id=s.id) }}"><strong>{{ s.name }}</strong>
+<span>Age {{ s.age }} • Grade {{ s.grade_level }} • Difficulty {{ s.current_difficulty }}</span>
+<span>{{ s.tests_taken }} tests • Average {{ s.average_score or 0 }}%</span><span>Mastery {{ s.average_mastery or 0 }}%</span></a>{% endfor %}</div>
+{% if selected_student_id %}{% set selected=students|selectattr('id','equalto',selected_student_id)|first %}{% if selected %}
+<section class="settings-card"><h2>{{ selected.name }} settings</h2>
+<form method="post" action="{{ url_for('update_student', student_id=selected.id) }}" class="settings-form">
+<label>Age<input type="number" name="age" min="5" max="19" value="{{ selected.age }}"></label>
+<label>Grade<input type="number" name="grade_level" min="1" max="12" value="{{ selected.grade_level }}"></label>
+<label>Difficulty<input type="number" name="current_difficulty" min="1" max="5" value="{{ selected.current_difficulty }}"></label>
+<button>Save</button></form>
+<form method="post" action="{{ url_for('reset_diagnostic', student_id=selected.id) }}"><button class="danger">Reset Diagnostic</button></form></section>{% endif %}{% endif %}
+<h2>Completed tests</h2><div class="table-wrap"><table><thead><tr><th>Student</th><th>Test</th><th>Standard</th><th>Mode</th><th>Score</th><th>Difficulty</th><th>Mastery</th><th>Status</th><th>Date</th></tr></thead>
+<tbody>{% for r in results %}<tr><td>{{ r.name }}</td><td>{{ r.theme_name }}</td><td>{{ r.standard_code }}</td><td>{{ r.mode }}</td>
+<td>{{ r.letter_grade }} / {{ r.raw_percent }}%</td><td>{{ r.starting_difficulty }} → {{ r.ending_difficulty }}</td><td>{{ r.mastery_score }}%</td><td>{{ r.mastery_status }}</td><td>{{ r.timestamp }}</td></tr>
+{% else %}<tr><td colspan="9">No completed tests yet.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}

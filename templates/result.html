@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}
+<section class="result-card"><p class="eyebrow">{{ result.name }} • {{ result.theme_name }} • {{ result.standard_code }}</p>
+<h1>{{ result.letter_grade }} — {{ result.raw_percent }}%</h1><p>{{ result.mastery_status }}</p></section>
+<div class="metric-grid"><div><strong>{{ result.questions_correct }}/{{ result.questions_attempted }}</strong><span>Correct</span></div>
+<div><strong>{{ result.starting_difficulty }} → {{ result.ending_difficulty }}</strong><span>Difficulty</span></div>
+<div><strong>{{ result.mastery_score }}%</strong><span>Mastery</span></div>
+<div><strong>{{ result.average_seconds }}s</strong><span>Average time</span></div></div>
+<h2>Answer review</h2><div class="answer-list">{% for a in answers %}
+<article class="answer {{ 'correct' if a.is_correct else 'incorrect' }}"><strong>{{ a.question_number }}. {{ a.prompt }}</strong>
+<span>Your answer: {{ a.submitted_answer or '(blank)' }} • Correct: {{ a.expected_answer }} • Difficulty {{ a.difficulty }}</span></article>{% endfor %}</div>
+<div class="actions"><a class="button" href="{{ url_for('tests') }}">Take Another Test</a></div>{% endblock %}

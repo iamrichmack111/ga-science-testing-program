@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<section class="hero"><p class="eyebrow">Georgia Grade 7 life science</p><h1>Adaptive science assessment</h1>
+<p>Students enter their name, age, and grade. The first assessment establishes a working level, then later tests adapt to performance.</p>
+<div class="actions"><a class="button" href="{{ url_for('student') }}">Start Student Test</a><a class="button secondary" href="{{ url_for('parent_dashboard') }}">Parent Portal</a></div></section>
+<h2>Test themes</h2><div class="card-grid">
+{% for key,t in themes.items() %}<article class="card"><h3>{{ t.name }}</h3><p>{{ t.description }}</p><small>{{ t.standard }}</small></article>{% endfor %}
+</div>{% endblock %}

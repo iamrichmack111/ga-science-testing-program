@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block content %}
+<section class="test-shell"><div class="test-status"><span>{{ theme.name }}</span><span>Question {{ active_test.current_question+1 }} of {{ active_test.total_questions }}</span><span>Difficulty {{ active_test.difficulty }}</span></div>
+<div class="progress"><div style="width:{{ (active_test.current_question/active_test.total_questions*100)|round }}%"></div></div>
+{% if feedback %}<div class="feedback">{{ feedback }}</div>{% endif %}
+<article class="question-card"><p class="eyebrow">{{ active_test.question.topic.replace('_',' ').title() }}</p><h1>{{ active_test.question.prompt }}</h1>
+<form method="post"><div class="choices">{% for choice in active_test.question.choices %}
+<label class="choice"><input type="radio" name="answer" value="{{ choice }}" required><span>{{ choice }}</span></label>{% endfor %}</div><button>Submit Answer</button></form>
+</article></section>{% endblock %}
